@@ -111,11 +111,14 @@ class SongBook(Converter):
         res = [[chord(a, b) if not a.isspace() else b for a, b in line] for line in res]
         return "\n\n".join("".join(e) for e in res)
 
-    def produce_songbook(self):
+    def produce_song(self):
         sections = split_song(self.blob, r'(\[.*?\])')
         sections = [(canonize_header(header), self.process_verse(section)) for header, section in sections]
         sections = [wrap(header, content) for header, content in sections]
         body = "\n".join(sections)
         song = wrap("song", body, self.title, "", self.artist, self.artist, "", "")
+        return song
+    def produce_songbook(self):
+        song = self.produce_song()
         latex = songbook_header() + wrap("document", song)
         return latex

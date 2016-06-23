@@ -8,34 +8,35 @@ class FileWriter(object):
         self.title = title
         self.artist = artist
         self.blob = blob
+        self.directory = ""
+        self.extension = ""
 
     @property
     def path(self):
         return self.directory + self.filename + "." + self.extension
 
     @property
-    def extension(self): return ""
-
-    @property
-    def directory(self): return ""
-
-    @property
     def filename(self): return " - ".join([self.artist, self.title])
 
     def write(self):
-        print("Writing file",self.path)
+        print("Writing file", self.path)
         with open(self.path, "w") as f:
             f.write(self.blob)
 
 
 class TexWriter(FileWriter):
-    @property
-    def extension(self): return "tex"
+    def __init__(self, *args, **kwargs):
+        super(TexWriter, self).__init__(*args, **kwargs)
+        self.extension = "tex"
 
 
 class PdfWriter(TexWriter):
+    def __init__(self, *args, **kwargs):
+        super(PdfWriter, self).__init__(*args, **kwargs)
+        self.library = "library/"
+        self.auxiliary = "auxiliary/"
 
     def write(self):
         super(PdfWriter, self).write()
-        call(["ls",'-l'])
-        call([shutil.which("pdflatex"),'"'+self.path+'"'],shell=True)
+        args = ["--aux-directory=" + self.auxiliary, ]
+        call([shutil.which("pdflatex"), self.path] + args)
