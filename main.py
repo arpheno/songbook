@@ -14,6 +14,7 @@ from writer import TexWriter, PdfWriter
 def add(parser, context, args):
     results = search("site:ultimate-guitar.com chords " + " ".join(args), stop=5)
     urls = [url for url in results if 'search' not in url]
+    print(urls[0])
     title, artist, song = ultimate_guitar(urls[0])
     converter = SongBook(title, artist, song)
     latex = converter.produce_song()

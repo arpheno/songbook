@@ -18,7 +18,7 @@ documentclass = r"""\documentclass[a5paper,10pt]{article}
 
 
 def songbook_header():
-    return documentclass+r'''\newcommand{\CCLInumber}{\#999999}
+    return documentclass + r'''\newcommand{\CCLInumber}{\#999999}
 \newcommand{\CCLIed}{(CCLI \CCLInumber)}
 \newcommand{\NotCCLIed}{}
 \newcommand{\PGranted}{}
@@ -94,8 +94,6 @@ def convert_chords(c, t):
     result = list(symbolize(c))
     acc = 0, *list(accumulate(len(x) for x in result)), 999
     trans = [t[start:end] for start, end in zip(acc, acc[1:])]
-    print(result)
-    print(trans)
     return result, trans
 
 
@@ -107,7 +105,7 @@ class SongBook(Converter):
 
     def process_verse(self, verse):
         res = [convert_chords(*line) for line in grouplines(verse)]
-        res = [zip_longest(chords, text, fillvalue=" ") for chords, text in grouplines(verse)]
+        res = [zip_longest(chords, text, fillvalue=" ") for chords, text in res]
         res = [[chord(a, b) if not a.isspace() else b for a, b in line] for line in res]
         return "\n\n".join("".join(e) for e in res)
 
@@ -116,8 +114,10 @@ class SongBook(Converter):
         sections = [(canonize_header(header), self.process_verse(section)) for header, section in sections]
         sections = [wrap(header, content) for header, content in sections]
         body = "\n".join(sections)
+        body=body.replace("#", r"\#")
         song = wrap("song", body, self.title, "", self.artist, self.artist, "", "")
         return song
+
     def produce_songbook(self):
         song = self.produce_song()
         latex = songbook_header() + wrap("document", song)
