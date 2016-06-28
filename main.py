@@ -96,7 +96,6 @@ def files(directory):
 @subcmd
 def maketex(parser, context, args):
     for artist,title,blob in files("clean/"):
-        print(blob)
         converter = SongBook(artist, title, blob)
         latex = converter.produce_song()
         TexWriter(artist, title, latex, directory="library/").write()
