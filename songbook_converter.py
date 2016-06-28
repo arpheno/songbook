@@ -53,7 +53,7 @@ def symbolize(line_with_chords):
 
 
 def split_song(blob, grammar):
-    parts = list(re.split(grammar, blob))
+    parts = list(re.split(grammar, blob))[1:]
     parts = list(zip(parts[::2], parts[1::2]))
     return parts
 

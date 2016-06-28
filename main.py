@@ -13,7 +13,7 @@ from google import search
 from subprocess import call
 
 from procurer import ultimate_guitar
-from rules import rules
+from rules import rules, clean
 from songbook_converter import SongBook, songbook_header, wrap
 from writer import TexWriter, PdfWriter, FileWriter
 
@@ -49,11 +49,10 @@ def addsongs(keywords):
         try:
             source = url(line)
             artist, title, blob = ultimate_guitar(source)
-            line = FileWriter(artist, title, blob, directory='raw/', extension='txt').write()
+            FileWriter(artist, title, blob, directory='raw/', extension='txt').write()
         except Exception as e:
             print("Couldn't add " + line)
             print(e)
-        finally:
             written.append(line)
     return written
 
@@ -88,41 +87,36 @@ def addfile(parser, context, args):
         f.writelines(added)
 
 
+def files(directory):
+    for file in glob.glob(directory+"*"):
+        with codecs.open(file, encoding='utf-8')as f:
+            artist, title = file.split("/")[-1][:-4].split(" - ")
+            song = f.read()
+        yield artist, title, song
 @subcmd
 def maketex(parser, context, args):
-    for file in glob.glob("raw/*.txt"):
-        with codecs.open(file, encoding='utf-8')as f:
-            artist, title = file.split("\\")[-1][:-4].split(" - ")
-            song = f.read()
-        converter = SongBook(artist, title, song)
+    for artist,title,blob in files("clean/"):
+        print(blob)
+        converter = SongBook(artist, title, blob)
         latex = converter.produce_song()
         TexWriter(artist, title, latex, directory="library/").write()
 
 
-def files(directory):
-    for file in glob.glob(directory+"*"):
-        with codecs.open(file, encoding='utf-8')as f:
-            artist, title = file.split("\\")[-1][:-4].split(" - ")
-            song = f.read()
-        yield artist, title, song
 
-def clean(line):
-    for pattern,replacement in rules.items():
-        print(pattern,replacement)
-        line = re.sub(pattern,replacement,line)
-    return line
 @subcmd
 def cleanraw(parser, context, args):
     for artist,title,blob in files("raw/"):
         blob="\n".join(clean(line) for line in blob.splitlines())
-        FileWriter(artist, title, blob, directory='clean', extension='txt').write()
+        if not "[" in blob:
+            blob="[Instrumental]\n"+blob
+        FileWriter(artist, title, blob, directory='clean/', extension='txt').write()
 
 
 @subcmd
 def makepdf(parser, context, args):
     latex = (line for line in fileinput.input(glob.glob("library/*.tex"), openhook=fileinput.hook_encoded("utf-8")))
     latex = songbook_header() + wrap("document", "\n".join(latex))
-    PdfWriter("songbook", "a", latex).write()
+    PdfWriter("Sebastian", "Songbook", latex).write()
 
 
 if __name__ == "__main__":

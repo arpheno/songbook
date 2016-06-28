@@ -4,7 +4,7 @@ from subprocess import call
 
 
 class FileWriter(object):
-    def __init__(self, title, artist, blob, extension="", directory=""):
+    def __init__(self, artist,title, blob, extension="", directory=""):
         self.title = title.replace("Chords", '')
         self.artist = artist
         self.blob = blob
