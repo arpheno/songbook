@@ -3,6 +3,8 @@ from itertools import accumulate, zip_longest, chain
 
 from converter import Converter
 from processing import groupby_spaces, join_chord_and_leave_spaces, flatten, grouplines
+from rules import clean
+from unicode_to_latex import unicode_to_latex
 from words import most_common
 
 
@@ -13,7 +15,8 @@ def chord(symbol, text):
 
 documentclass = r"""\documentclass[a5paper,8pt]{book}
 \usepackage[chordbk]{songbook}
-
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
 \usepackage{pgfpages}
 \pgfpagesuselayout{2 on 1}[a4paper,landscape,border shrink=5mm]"""
 
@@ -161,7 +164,8 @@ class SongBook(Converter):
                 asd.append((e[0], "Sing " + e[0][3:-1]))
         sections = [wrap(header, content) for header, content in asd]
         body = "\n".join(sections)
-        body = body.replace("#", r"\#")
+        body=body.replace("#",r"\#")
+        #body = clean(body, unicode_to_latex)
         song = wrap("song", body, self.title, "", self.artist, self.artist, "", "")
         return song
 
