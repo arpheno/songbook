@@ -1,11 +1,8 @@
-import argparse
 import fileinput
 import glob
 import random
-from concurrent.futures import ThreadPoolExecutor
 
 import time
-from itertools import repeat
 
 import re
 from arghandler import ArgumentHandler, subcmd
@@ -19,7 +16,8 @@ from writer import TexWriter, PdfWriter, FileWriter
 
 
 def url(keyword):
-    results = search("site:ultimate-guitar.com chords " + " ".join(keyword), stop=5)
+    searchterm = "site:ultimate-guitar.com chords " + keyword
+    results = search(searchterm, stop=10)
     for url in results:
         time.sleep(random.random())
         if 'search' not in url:
@@ -72,7 +70,7 @@ def edit(parser, context, args):
 def add(parser, context, args):
     source = url(args)
     artist, title, blob = ultimate_guitar(source)
-    FileWriter(artist, title, blob, directory='raw', extension='txt').write()
+    FileWriter(artist, title, blob, directory='raw/', extension='txt').write()
 
 
 @subcmd
@@ -88,26 +86,27 @@ def addfile(parser, context, args):
 
 
 def files(directory):
-    for file in glob.glob(directory+"*"):
+    for file in glob.glob(directory + "*"):
         with codecs.open(file, encoding='utf-8')as f:
-            artist, title = file.split("/")[-1][:-4].split(" - ")
+            artist, title = file.split("\\")[-1][:-4].split(" - ")
             song = f.read()
         yield artist, title, song
+
+
 @subcmd
 def maketex(parser, context, args):
-    for artist,title,blob in files("clean/"):
+    for artist, title, blob in files("clean/"):
         converter = SongBook(artist, title, blob)
         latex = converter.produce_song()
         TexWriter(artist, title, latex, directory="library/").write()
 
 
-
 @subcmd
 def cleanraw(parser, context, args):
-    for artist,title,blob in files("raw/"):
-        blob="\n".join(clean(line) for line in blob.splitlines())
+    for artist, title, blob in files("raw/"):
+        blob = clean(blob)
         if not "[" in blob:
-            blob="[Instrumental]\n"+blob
+            blob = "[Instrumental]\n" + blob
         FileWriter(artist, title, blob, directory='clean/', extension='txt').write()
 
 

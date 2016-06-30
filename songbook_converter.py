@@ -4,7 +4,6 @@ from itertools import accumulate, zip_longest, chain
 from converter import Converter
 from processing import groupby_spaces, join_chord_and_leave_spaces, flatten, grouplines
 from rules import clean
-from unicode_to_latex import unicode_to_latex
 from words import most_common
 
 
@@ -108,6 +107,7 @@ class SongBook(Converter):
         self.title = title.replace("Chords", "")
         self.artist = artist
         self.blob = preformatted_song
+        self.blob = re.sub("[{}]","",self.blob)
         self.blob = "\n".join(line for line in self.blob.splitlines() if not bad_line(line))
 
     def is_chordline(self, line):

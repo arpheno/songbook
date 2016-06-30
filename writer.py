@@ -10,6 +10,8 @@ class FileWriter(object):
         self.blob = blob
         self.directory = directory
         self.extension = extension
+        if self.directory:
+            call(['mkdir','-p',self.directory])
 
     @property
     def path(self):
