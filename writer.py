@@ -4,12 +4,14 @@ from subprocess import call
 
 
 class FileWriter(object):
-    def __init__(self, title, artist, blob):
-        self.title = title
+    def __init__(self, artist,title, blob, extension="", directory=""):
+        self.title = title.replace("Chords", '')
         self.artist = artist
         self.blob = blob
-        self.directory = ""
-        self.extension = ""
+        self.directory = directory
+        self.extension = extension
+        if self.directory:
+            call(['mkdir','-p',self.directory])
 
     @property
     def path(self):
@@ -19,9 +21,11 @@ class FileWriter(object):
     def filename(self): return " - ".join([self.artist, self.title])
 
     def write(self):
+        import codecs
         print("Writing file", self.path)
-        with open(self.path, "w") as f:
+        with codecs.open(self.path, "w", encoding="utf-8") as f:
             f.write(self.blob)
+        return self.filename
 
 
 class TexWriter(FileWriter):

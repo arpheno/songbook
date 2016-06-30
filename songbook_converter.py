@@ -1,20 +1,23 @@
 import re
-from itertools import accumulate, zip_longest
+from itertools import accumulate, zip_longest, chain
 
 from converter import Converter
 from processing import groupby_spaces, join_chord_and_leave_spaces, flatten, grouplines
+from rules import clean
+from words import most_common
 
 
 def chord(symbol, text):
-    result = r"\Ch{%s}{%s}" % (symbol, text)
+    result = r"\Chr{%s}{%s}" % (symbol, text)
     return result
 
 
-documentclass = r"""\documentclass[a5paper,10pt]{article}
+documentclass = r"""\documentclass[a5paper,8pt]{book}
 \usepackage[chordbk]{songbook}
-
-\usepackage{pgfpages}                                 % <— load the package
-\pgfpagesuselayout{2 on 1}[a4paper,landscape,border shrink=5mm] %%"""
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{pgfpages}
+\pgfpagesuselayout{2 on 1}[a4paper,landscape,border shrink=5mm]"""
 
 
 def songbook_header():
@@ -23,13 +26,11 @@ def songbook_header():
 \newcommand{\NotCCLIed}{}
 \newcommand{\PGranted}{}
 \newcommand{\PPending}{(Permission Pending)}
-%%
-% Turn on index and table of contents.
-%%
-\makeTitleIndex %% Title and First Line Index.
-\makeTitleContents %% Table of Contents.
-\makeKeyIndex %% Song Key Index.
-\makeArtistIndex %% Index by Artist.
+\makeTitleIndex
+\makeTitleContents
+\makeKeyIndex
+\makeArtistIndex
+
 '''
 
 
@@ -54,7 +55,7 @@ def symbolize(line_with_chords):
 
 
 def split_song(blob, grammar):
-    parts = re.split(grammar, blob)[1:]  # Element 0 is empty
+    parts = list(re.split(grammar, blob))[1:]
     parts = list(zip(parts[::2], parts[1::2]))
     return parts
 
@@ -73,8 +74,6 @@ def canonize_header(header):
     }
     for key in sections:
         if key in header.lower():
-            print(sections[key])
-
             return sections[key]
     return '[SBOpGroup]'
 
@@ -97,14 +96,59 @@ def convert_chords(c, t):
     return result, trans
 
 
+def bad_line(line):
+    if "_" in line:
+        return True
+    return False
+
+
 class SongBook(Converter):
-    def __init__(self, title, artist, preformatted_song):
-        self.title = title
+    def __init__(self, artist, title, preformatted_song):
+        self.title = title.replace("Chords", "")
         self.artist = artist
         self.blob = preformatted_song
+        self.blob = re.sub("[{}]","",self.blob)
+        self.blob = "\n".join(line for line in self.blob.splitlines() if not bad_line(line))
+
+    def is_chordline(self, line):
+        keys = "CDFGBH"
+        flatchords = [key + '#' for key in keys] + [key + 'b' for key in keys]
+        mollchords = [a + 'm' for a in chain(keys, flatchords)]
+        if any(x in line for x in chain(mollchords, flatchords)):
+            return True
+        if len([x for x in line if x.isspace()]) / len(line) > 0.3:
+            return True
+        return False
+
+    def align_chords_and_text(self, section):
+        """Returns tuples of lines of text. (Chordline,Lyricsline)"""
+        result = []
+        CHORD, LYRICS = 0, 1
+        section = [line + " " for line in section.splitlines() if line]
+        for line in section:
+            if all(c.isspace() or not c for c in line):
+                continue
+            if any(word in line for word in most_common):
+                result.append((LYRICS, line))
+            elif self.is_chordline(line):
+                result.append((CHORD, line))
+            else:
+                result.append((LYRICS, line))
+        to_add, final = CHORD, []
+        for line in result:
+            if line[0] == to_add:
+                final.append(line[1])
+                to_add = (to_add + 1) % 2
+            else:
+                final.append(" ")
+                final.append(line[1])
+        if len(final) % 2:
+            final.append(" ")
+        return "\n".join(final)
 
     def process_verse(self, verse):
-        res = [convert_chords(*line) for line in grouplines(verse)]
+        aligned_verse = self.align_chords_and_text(verse)
+        res = [convert_chords(*line) for line in grouplines(aligned_verse)]
         res = [zip_longest(chords, text, fillvalue=" ") for chords, text in res]
         res = [[chord(a, b) if not a.isspace() else b for a, b in line] for line in res]
         return "\n\n".join("".join(e) for e in res)
@@ -112,9 +156,16 @@ class SongBook(Converter):
     def produce_song(self):
         sections = split_song(self.blob, r'(\[.*?\])')
         sections = [(canonize_header(header), self.process_verse(section)) for header, section in sections]
-        sections = [wrap(header, content) for header, content in sections]
+        asd = []
+        for e in sections:
+            if not e in asd:
+                asd.append(e)
+            else:
+                asd.append((e[0], "Sing " + e[0][3:-1]))
+        sections = [wrap(header, content) for header, content in asd]
         body = "\n".join(sections)
-        body=body.replace("#", r"\#")
+        body=body.replace("#",r"\#")
+        #body = clean(body, unicode_to_latex)
         song = wrap("song", body, self.title, "", self.artist, self.artist, "", "")
         return song
 

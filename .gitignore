@@ -47,3 +47,9 @@ fabric.properties
 
 /library/
 /auxiliary/
+/raw
+.google-cookie
+*.pdf
+*.tex
+*.txt
+secret.py
