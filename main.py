@@ -9,7 +9,7 @@ from arghandler import ArgumentHandler, subcmd
 from google import search
 from subprocess import call
 
-from procurer import ultimate_guitar
+from procurer import ultimate_guitar, lastfm, postulate_url
 from rules import rules, clean
 from songbook_converter import SongBook, songbook_header, wrap
 from writer import TexWriter, PdfWriter, FileWriter
@@ -88,7 +88,7 @@ def addfile(parser, context, args):
 def files(directory):
     for file in glob.glob(directory + "*"):
         with codecs.open(file, encoding='utf-8')as f:
-            artist, title = file.split("\\")[-1][:-4].split(" - ")
+            artist, title = file.split("/")[-1][:-4].split(" - ")
             song = f.read()
         yield artist, title, song
 
@@ -108,6 +108,27 @@ def cleanraw(parser, context, args):
         if not "[" in blob:
             blob = "[Instrumental]\n" + blob
         FileWriter(artist, title, blob, directory='clean/', extension='txt').write()
+
+@subcmd
+def sanitize(parser, context, args):
+    result = []
+    for line in open(args[0]):
+        artist, title = lastfm(line.strip())
+        if artist and title and not find_file_for_keyword(artist + ' - '+ title):
+            result.append(artist+" - "+title)
+        else:
+            result.append(line)
+    with open("sanitized.txt",'w') as f:
+        f.writelines(result)
+
+
+
+def asdasdas(parser, context, args):
+    for line in open(args[0]):
+        source = postulate_url(*lastfm(line.strip()))
+        print(source)
+        artist, title, blob = ultimate_guitar(source)
+        FileWriter(artist, title, blob, directory='raw/', extension='txt').write()
 
 
 @subcmd
