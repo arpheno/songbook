@@ -54,3 +54,4 @@ fabric.properties
 *.txt
 secret.py
 !/latex/*.tex
+!/words/*.txt

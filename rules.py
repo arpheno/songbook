@@ -10,8 +10,6 @@ def grammar():
     }
     return {k.replace('KEYWORD', x)+r'.*': v.replace('KEYWORD', x) for k, v in patterns.items() for x in keywords}
 
-for k,v in grammar().items():
-    print(k,v)
 rules = {
     # Spelling
     r"Uvod": "Intro",

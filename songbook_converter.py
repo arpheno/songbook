@@ -2,6 +2,7 @@ import fileinput
 import glob
 import re
 from itertools import accumulate, zip_longest, chain
+from string import punctuation
 
 from converter import Converter
 from processing import groupby_spaces, join_chord_and_leave_spaces, flatten, grouplines
@@ -16,7 +17,9 @@ def chord(symbol, text):
 
 def header():
     """ Return everything from latex/ line by line starting with _documentclass"""
-    return "".join(line for line in fileinput.input(glob.glob("latex//**")))
+    files = ["latex/documentclass.tex"] + glob.glob("latex//my**")
+    print(files)
+    return "".join(line for line in fileinput.input(files))
 
 
 def extend_single_chords(symbols):
@@ -89,8 +92,46 @@ def bad_line(line):
     return False
 
 
+def is_chordline(line):
+    keys = "CDFGBEHA"
+    flatchords = [key + '#' for key in keys] + [key + 'b' for key in keys]
+    chords=list(chain(keys, flatchords))
+    mollchords = [a + 'm' for a in chords]
+    majchords = [key+"maj7" for key in chords]
+    powerchords = [key+x for key in chain(mollchords,chords) for x in "576"]
+    suschords=[key+'sus'+x for key in chain(mollchords,chords) for x in "24"]
+    addchords=[key+'add'+x for key in chain(mollchords,chords) for x in ["9",'11','13']]
+    whitespace = ["\w.*\s\s"]
+    import re
+    myregex = "|".join(r"^.*" + x + r"(\*)?\s.*$" for x in chain(keys, powerchords,mollchords, flatchords,suschords,majchords,addchords))
+    chords = re.compile(myregex)
+    return chords.match(line)
+def is_lyricsline(line):
+    line = [word.lower().strip(punctuation) for word in line.split()]
+    if any(word in  line for word in most_common):
+        return True
+
+def multireplace(text, rep):
+    import re
+    rep = dict((re.escape(k), v) for k, v in rep.items())
+    pattern = re.compile("|".join(rep.keys()))
+    return pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
+
+
 class SongBook(Converter):
+    post_processing_rules = {
+            "#": r"\#",
+            "&": r"\&",
+            "\xa0": r" ",
+            chr(8216): r"'",
+            chr(8217): r"'",
+            chr(8211): r"-",
+            chr(8222): r'"',
+            chr(8221): r'"',
+            chr(8230): r"...",
+        }
     def __init__(self, artist, title, preformatted_song):
+
         self.title = title.replace("Chords", "")
         self.artist = artist
         self.blob = preformatted_song
@@ -98,16 +139,6 @@ class SongBook(Converter):
     def pre_processing_replace(self):
         self.blob = re.sub("[{}]", "", self.blob)
         self.blob = "\n".join(line for line in self.blob.splitlines() if not bad_line(line))
-
-    def is_chordline(self, line):
-        keys = "CDFGBH"
-        flatchords = [key + '#' for key in keys] + [key + 'b' for key in keys]
-        mollchords = [a + 'm' for a in chain(keys, flatchords)]
-        if any(x in line for x in chain(mollchords, flatchords)):
-            return True
-        if len([x for x in line if x.isspace()]) / len(line) > 0.3:
-            return True
-        return False
 
     def align_chords_and_text(self, section):
         """Returns tuples of lines of text. (Chordline,Lyricsline)"""
@@ -117,11 +148,12 @@ class SongBook(Converter):
         for line in section:
             if all(c.isspace() or not c for c in line):
                 continue
-            if any(word in line for word in most_common):
+            elif is_lyricsline(line):
                 result.append((LYRICS, line))
-            elif self.is_chordline(line):
+            elif is_chordline(line):
                 result.append((CHORD, line))
             else:
+                print("Couldn't identify ", line,". Guessing Lyrics")
                 result.append((LYRICS, line))
         to_add, final = CHORD, []
         for line in result:
@@ -143,14 +175,7 @@ class SongBook(Converter):
         return "\n\n".join("".join(e) for e in res)
 
     def post_processing_replace(self):
-        self.body = self.body.replace("#", r"\#")
-        self.body = self.body.replace("&", r"\&")
-        self.body = self.body.replace("\xa0", r" ")
-        self.body = self.body.replace(chr(8216), r"'")
-        self.body = self.body.replace(chr(8217), r"'")
-        self.body = self.body.replace(chr(8211), r"-")
-        self.body = self.body.replace(chr(8230), r"...")
-
+        self.body = multireplace(self.body, self.post_processing_rules)
     def produce_song(self):
         self.pre_processing_replace()
         sections = split_song(self.blob, r'(\[.*?\])')
@@ -165,8 +190,8 @@ class SongBook(Converter):
         # body = clean(body, unicode_to_latex)
         self.body = "\n".join(sections)
         self.post_processing_replace()
-        song = r'\CBPageBrk'+wrap("song", self.body, self.title, "", self.artist.replace(r"&", "r\&"),
-                    self.artist.replace(r"&", "r\&"), "", "")
+        song = r'\CBPageBrk' + wrap("song", self.body, self.title, "", self.artist.replace(r"&", "r\&"),
+                                    self.artist.replace(r"&", "r\&"), "", "")
         return song
 
     def produce_songbook(self):

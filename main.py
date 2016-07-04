@@ -1,12 +1,12 @@
 import fileinput
 import glob
+import os
 import random
 
 import time
 
 import re
 
-from Levenshtein._levenshtein import ratio
 from arghandler import ArgumentHandler, subcmd
 from google import search
 from subprocess import call
@@ -60,8 +60,6 @@ def addsongs(keywords):
 def find_file_for_keyword(keyword):
     globs = (filename.split("\\")[-1][:-5] for filename in glob.glob('reviewed/**'))
     for filename in globs:
-         if ratio(keyword.lower(), filename.lower())>0.9 :
-             return True
          if keyword.lower() in filename.lower():
              return True
          if filename.lower() in keyword.lower():
@@ -98,7 +96,7 @@ def addfile(parser, context, args):
 def files(directory):
     for file in glob.glob(directory + "*"):
         with codecs.open(file, encoding='utf-8')as f:
-            artist, title = file.split("\\")[-1][:-4].split(" - ")
+            artist, title = os.path.split(file)[-1][:-4].split(" - ")
             song = f.read()
         yield artist, title, song
 
@@ -129,22 +127,6 @@ def cleanraw(parser, context, args=('raw',)):
         FileWriter(artist, title, blob, directory='clean/', extension='txt').write()
 
 
-@subcmd
-def sanitize(parser, context, args):
-    result = []
-    for line in open(args[0]):
-        artist, title = lastfm(line.strip())
-        if artist and title and find_file_for_keyword(artist + ' - ' + title):
-            print(line, "already exists")
-        elif artist and title and not find_file_for_keyword(artist + ' - ' + title):
-            result.append(artist + " - " + title)
-        else:
-            print("Could not make sense of", line)
-            result.append(line)
-    with open("sanitized.txt", 'w',encoding='utf-8') as f:
-        f.write('\n'.join(result))
-
-
 
 
 @subcmd
@@ -153,6 +135,7 @@ def makepdf(parser, context, args=('library',)):
         args=('library',)
     latex = (line for line in fileinput.input(glob.glob(args[0] + '/*.tex'), openhook=fileinput.hook_encoded("utf-8")))
     latex = header() + wrap("document", "\n".join(latex))
+    print([(sym,ord(sym)) for sym in latex if ord(sym)>1000])
     PdfWriter("Sebastian", "Songbook", latex).write()
 
 

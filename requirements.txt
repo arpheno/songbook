@@ -3,4 +3,4 @@ pylast
 beautifulsoup4
 google
 arghandler
-python-levenshtein
+pytest
