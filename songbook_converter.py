@@ -1,3 +1,5 @@
+import fileinput
+import glob
 import re
 from itertools import accumulate, zip_longest, chain
 
@@ -12,26 +14,9 @@ def chord(symbol, text):
     return result
 
 
-documentclass = r"""\documentclass[a5paper,8pt]{book}
-\usepackage[chordbk]{songbook}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{pgfpages}
-\pgfpagesuselayout{2 on 1}[a4paper,landscape,border shrink=5mm]"""
-
-
-def songbook_header():
-    return documentclass + r'''\newcommand{\CCLInumber}{\#999999}
-\newcommand{\CCLIed}{(CCLI \CCLInumber)}
-\newcommand{\NotCCLIed}{}
-\newcommand{\PGranted}{}
-\newcommand{\PPending}{(Permission Pending)}
-\makeTitleIndex
-\makeTitleContents
-\makeKeyIndex
-\makeArtistIndex
-
-'''
+def header():
+    """ Return everything from latex/ line by line starting with _documentclass"""
+    return "".join(line for line in fileinput.input(glob.glob("latex//**")))
 
 
 def extend_single_chords(symbols):
@@ -71,6 +56,8 @@ def canonize_header(header):
         'bridge': '[SBBridge]',
         'outro': '[SBEnd]',
         'chorus': '[SBChorus]',
+        'pre-chorus': '[SBPrechorus]',
+        'instrumental': '[SBInstrumental]',
     }
     for key in sections:
         if key in header.lower():
@@ -107,7 +94,9 @@ class SongBook(Converter):
         self.title = title.replace("Chords", "")
         self.artist = artist
         self.blob = preformatted_song
-        self.blob = re.sub("[{}]","",self.blob)
+
+    def pre_processing_replace(self):
+        self.blob = re.sub("[{}]", "", self.blob)
         self.blob = "\n".join(line for line in self.blob.splitlines() if not bad_line(line))
 
     def is_chordline(self, line):
@@ -153,7 +142,17 @@ class SongBook(Converter):
         res = [[chord(a, b) if not a.isspace() else b for a, b in line] for line in res]
         return "\n\n".join("".join(e) for e in res)
 
+    def post_processing_replace(self):
+        self.body = self.body.replace("#", r"\#")
+        self.body = self.body.replace("&", r"\&")
+        self.body = self.body.replace("\xa0", r" ")
+        self.body = self.body.replace(chr(8216), r"'")
+        self.body = self.body.replace(chr(8217), r"'")
+        self.body = self.body.replace(chr(8211), r"-")
+        self.body = self.body.replace(chr(8230), r"...")
+
     def produce_song(self):
+        self.pre_processing_replace()
         sections = split_song(self.blob, r'(\[.*?\])')
         sections = [(canonize_header(header), self.process_verse(section)) for header, section in sections]
         asd = []
@@ -163,13 +162,14 @@ class SongBook(Converter):
             else:
                 asd.append((e[0], "Sing " + e[0][3:-1]))
         sections = [wrap(header, content) for header, content in asd]
-        body = "\n".join(sections)
-        body=body.replace("#",r"\#")
-        #body = clean(body, unicode_to_latex)
-        song = wrap("song", body, self.title, "", self.artist, self.artist, "", "")
+        # body = clean(body, unicode_to_latex)
+        self.body = "\n".join(sections)
+        self.post_processing_replace()
+        song = r'\CBPageBrk'+wrap("song", self.body, self.title, "", self.artist.replace(r"&", "r\&"),
+                    self.artist.replace(r"&", "r\&"), "", "")
         return song
 
     def produce_songbook(self):
         song = self.produce_song()
-        latex = songbook_header() + wrap("document", song)
+        latex = header() + wrap("document", song)
         return latex

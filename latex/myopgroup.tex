@@ -1,0 +1,15 @@
+\renewenvironment{SBOpGroup}{
+  \sbSetsbBaselineSkipAmt
+  \bgroup
+  \begin{list}{\hbox{}}
+    { \setlength {\leftmargin}   {\HangAmt}
+      \setlength{\itemindent}   {-\HangAmt}
+      \setlength{\listparindent}{-\HangAmt}
+      \setlength{\topsep}       {0pt}
+      \setlength{\parsep}       {0pt}
+      \setlength{\labelwidth}   {0pt}
+      \setlength{\labelsep}     {0pt}
+      \setlength{\baselineskip} {\sbBaselineSkipAmt}
+      }
+    \item}
+{\end{list} \egroup \SpaceAfterOpGroup}

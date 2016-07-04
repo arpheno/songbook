@@ -1,0 +1,12 @@
+\renewenvironment{SBVerse}{
+  \sbSetsbBaselineSkipAmt
+  \bgroup%
+  \addtocounter{SBVerseCnt}{1}
+  \SBVerseMarkright{\theSBVerseCnt}
+  \begin{list}{{\SBVerseNumberFont\theSBVerseCnt .}}
+    {\setlength {\leftmargin}   { \HangAmt}
+      \setlength{\parsep}       {0pt}
+      \setlength{\baselineskip} {\sbBaselineSkipAmt}
+    }
+    \item}
+{\end{list} \egroup \SpaceAfterVerse}

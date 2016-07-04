@@ -18,11 +18,11 @@ class FileWriter(object):
         return self.directory + self.filename + "." + self.extension
 
     @property
-    def filename(self): return " - ".join([self.artist, self.title])
+    def filename(self): return " - ".join([self.artist.strip(), self.title.strip()])
 
     def write(self):
         import codecs
-        print("Writing file", self.path)
+        print("Writing file", self.path.encode('utf-8'))
         with codecs.open(self.path, "w", encoding="utf-8") as f:
             f.write(self.blob)
         return self.filename

@@ -1,0 +1,16 @@
+\renewcommand{\SBIntro}[2][N]{%
+  \ifthenelse{\equal{\ifWordsOnly Y\fi}{Y}
+    \and \equal{N}{#1}}%
+  {\relax}%
+  {\sbSetsbBaselineSkipAmt%
+   \bgroup%
+    \begin{list}{{\SBIntroTagFont\SBIntroTag}}%
+      {\setlength {\leftmargin}  {\LeftMarginSBChorus}%
+        \setlength{\parsep}      {0pt}
+        \setlength{\baselineskip}{\sbBaselineSkipAmt}
+        }%
+      \item #2
+      \vspace{-\topsep}%\vspace{-\partopsep}%
+    \end{list}%
+    \egroup\par}%
+  }

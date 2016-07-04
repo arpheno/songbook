@@ -1,0 +1,15 @@
+\renewcommand{\SBBridge}[1]{
+  \ifWordsOnly
+    \relax
+  \else
+    \sbSetsbBaselineSkipAmt
+    \bgroup
+    \begin{list}{{\SBBridgeTagFont\SBBridgeTag}}
+      {\setlength {\leftmargin}  {\LeftMarginSBChorus}
+        \setlength{\parsep}      {0pt}
+        \setlength{\baselineskip}{\sbBaselineSkipAmt}
+        }
+      \item #1
+    \end{list}
+    \egroup\par
+  \fi}

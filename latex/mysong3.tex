@@ -1,0 +1,28 @@
+{\ifSamepageMode%
+    \end{samepage}%
+  \fi%
+  \ifCompactSongMode
+    \renewcommand{\ChBassFont}{\ChBassFontSav}		%
+    \renewcommand{\ChFont}{\ChFontSav}			%
+    \renewcommand{\ChBkFont}{\ChBkFontSav}		%
+    \renewcommand{\SBDefaultFont}{\SBDefaultFontSav}	%
+    \renewcommand{\SBOccursBrktFont}{\SBOccursBrktFontSav}%
+    \setlength{\textwidth}     {\textwidthSav}
+    \setlength{\evensidemargin}{\evensidemarginSav}
+    \setlength{\marginparsep}  {\marginparsepSav}
+    \setlength{\marginparwidth}{\marginparwidthSav}
+    \renewcommand{\HangAmt}            {\HangAmtSav}
+    \renewcommand{\LeftMarginSBChorus} {\LeftMarginSBChorusSav}
+    \renewcommand{\LeftMarginSBSection}{\LeftMarginSBSectionSav}
+    \renewcommand{\LeftMarginSBVerse}  {\LeftMarginSBVerseSav}
+    \end{multicols*}
+  \fi
+  \ifSongEject%
+    \vfill\pagebreak%
+  \else%
+    \SpaceAfterSong\pagebreak[1]%
+  \fi%
+  \ifExcludeSong\egroup\setbox2=\hbox{}\fi%
+  \renewcommand{\SBinSongEnv}{\False}%
+  \SBinSongEnvfalse%
+  }

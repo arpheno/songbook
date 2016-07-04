@@ -1,0 +1,30 @@
+\documentclass[a5paper,8pt]{book}
+\usepackage[chordbk]{songbook}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{pgfpages}
+%\usepackage{helvet}
+\pgfpagesuselayout{2 on 1}[a4paper,landscape,border shrink=5mm]
+\newcommand{\CCLInumber}{\#999999}
+\newcommand{\CCLIed}{(CCLI \CCLInumber)}
+\newcommand{\NotCCLIed}{}
+\newcommand{\PGranted}{}
+\newcommand{\PPending}{(Permission Pending)}
+%\renewcommand{\SBDefaultFont}{\sfdefault}
+\renewcommand{\OHContPgFtrTag}     {continued on next page\ldots}
+\renewcommand{\OHContPgHdrTag}     {\theSBSongCnt\ --- \theSongTitle, continued\ldots}
+\renewcommand{\SBBaseLang}	 {English}
+\renewcommand{\SBBridgeTag}        {Bridge:}
+\renewcommand{\SBChorusTag}        {Ch:}
+\renewcommand{\SBContinueTag}      {cont\ldots}
+\renewcommand{\SBEndTag}           {End:}
+\renewcommand{\SBIntersyllableRule}{\hrulefill}
+\renewcommand{\SBIntroTag}         {Intro:}
+\renewcommand{\SBPubDom}           {Public Domain}
+\renewcommand{\SBUnknownTag}       {Unknown}
+\renewcommand{\SBWAndMTag}         {W\&M:}
+\renewcommand{\Songbook}           {\textrm{Song$\flat$ook}}
+\makeTitleIndex
+\makeTitleContents
+\makeKeyIndex
+\makeArtistIndex

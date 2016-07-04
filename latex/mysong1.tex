@@ -1,0 +1,72 @@
+\renewenvironment{song}[7][YF]{
+  \IfSubStr{\uppercase{#1}}{N}{\ExcludeSongtrue}{\relax}
+  \IfSubStr{\uppercase{#1}}{Y}{\ExcludeSongfalse}{\relax}%
+  \ifPrintAllSongs\ExcludeSongfalse\fi          %
+  \IfSubStr{\uppercase{#1}}{C}{\CompactSongModetrue}{\relax}% newlines.
+  \IfSubStr{\uppercase{#1}}{F}{\CompactSongModefalse}{\relax}%
+  \ifCompactAllMode\CompactSongModetrue\fi      %
+  \SongMarkboth{\relax}{\relax}                 %
+  \SBinSongEnvtrue                              %
+  \renewcommand{\SBinSongEnv}{\True}            %
+  \ifWordsOnly                                  %
+    \setlength{\parindent}{0pt}                 %
+  \fi                                           %
+  \renewcommand{\theSongComposer}{#5}           %
+  \if\blank{#5}                                 %
+    \renewcommand{\theSongComposerU}{\SBUnknownTag}%
+  \else                                         %
+    \renewcommand{\theSongComposerU}{#5}        %
+  \fi                                           %
+  \renewcommand{\theSongCopyRt}{#4}             %
+  \renewcommand{\theSongKey}{#3}                %
+  \renewcommand{\theSongLicense}{#7}            %
+  \renewcommand{\theSongScriptRef}{#6}          %
+  \renewcommand{\theSongTitle}{#2}              %
+  \renewcommand{\theXlatnBy}{}                  %
+  \renewcommand{\theXlatnLang}{\SBBaseLang}     %
+  \renewcommand{\theXlatnPerm}{}                %
+  \renewcommand{\theXlatnTitle}{}               %
+  \addtocounter{SBSongCnt}{1}                   %
+  \ifExcludeSong                                %
+    \titleContentsSkip{\theSongTitle}{\theSongKey}%
+  \else                                         %
+    \titleIndex{\theSongTitle}{\theSBSongCnt}   %
+    \titleContents{\theSongTitle}{\theSongKey}  %
+    \artistIndex{\theSongComposerU+\theSongTitle}{\theSBSongCnt}%
+  \fi                                           %
+  \ifExcludeSong\setbox2=\vbox\bgroup\fi%
+  \ifSamepageMode
+    \begin{samepage}%
+  \fi
+  \ifCompactSongMode
+    \renewcommand{\ChBassFontSav}{\ChBassFont}		%
+    \renewcommand{\ChFontSav}{\ChFont}			%
+    \renewcommand{\ChBkFontSav}{\ChBkFont}		%
+    \renewcommand{\SBDefaultFontSav}{\SBDefaultFont}	%
+    \renewcommand{\SBOccursBrktFontSav}{\SBOccursBrktFont}%
+    \renewcommand{\ChBassFont}{\ChBassFontCS}		%
+    \renewcommand{\ChFont}{\ChFontCS}			%
+    \renewcommand{\ChBkFont}{\ChBkFontCS}		%
+    \renewcommand{\SBDefaultFont}{\SBDefaultFontCS}	%
+    \renewcommand{\SBOccursBrktFont}{\SBOccursBrktFontCS}%
+    \setlength{\columnsep}{0.25in}
+    \setlength{\textwidthSav}     {\textwidth}
+    \setlength{\evensidemarginSav}{\evensidemargin}
+    \setlength{\marginparsepSav}  {\marginparsep}
+    \setlength{\marginparwidthSav}{\marginparwidth}
+    \addtolength{\textwidth}     {\marginparsep + \marginparwidth}
+    \addtolength{\evensidemargin}{-\marginparsep - \marginparwidth}
+    \setlength  {\marginparsep}  {0in}
+    \setlength  {\marginparwidth}{0in}
+    \setlength{\chSpaceToleranceSav}{\chSpaceTolerance}
+    \setlength{\chSpaceTolerance}{1.0mm}
+    \renewcommand{\HangAmtSav}            {\HangAmt}
+    \renewcommand{\LeftMarginSBChorusSav} {\LeftMarginSBChorus}
+    \renewcommand{\LeftMarginSBSectionSav}{\LeftMarginSBSection}
+    \renewcommand{\LeftMarginSBVerseSav}  {\LeftMarginSBVerse}
+    \renewcommand{\HangAmt}            {1.5em}
+    \renewcommand{\LeftMarginSBChorus} {2em}
+    \renewcommand{\LeftMarginSBSection}{\LeftMarginSBChorus}
+    \renewcommand{\LeftMarginSBVerse}  {\LeftMarginSBChorus}
+  \fi
+

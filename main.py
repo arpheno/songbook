@@ -5,13 +5,15 @@ import random
 import time
 
 import re
+
+from Levenshtein._levenshtein import ratio
 from arghandler import ArgumentHandler, subcmd
 from google import search
 from subprocess import call
 
 from procurer import ultimate_guitar, lastfm, postulate_url
 from rules import rules, clean
-from songbook_converter import SongBook, songbook_header, wrap
+from songbook_converter import SongBook,  wrap, header
 from writer import TexWriter, PdfWriter, FileWriter
 
 
@@ -56,7 +58,15 @@ def addsongs(keywords):
 
 
 def find_file_for_keyword(keyword):
-    return [filename for filename in glob.glob('library/**') if keyword.lower() in filename.lower()]
+    globs = (filename.split("\\")[-1][:-5] for filename in glob.glob('reviewed/**'))
+    for filename in globs:
+         if ratio(keyword.lower(), filename.lower())>0.9 :
+             return True
+         if keyword.lower() in filename.lower():
+             return True
+         if filename.lower() in keyword.lower():
+             return True
+    return False
 
 
 @subcmd
@@ -88,56 +98,70 @@ def addfile(parser, context, args):
 def files(directory):
     for file in glob.glob(directory + "*"):
         with codecs.open(file, encoding='utf-8')as f:
-            artist, title = file.split("/")[-1][:-4].split(" - ")
+            artist, title = file.split("\\")[-1][:-4].split(" - ")
             song = f.read()
         yield artist, title, song
 
 
 @subcmd
-def maketex(parser, context, args):
-    for artist, title, blob in files("clean/"):
+def maketex(parser, context, args=('clean',)):
+    if not len(args):
+        args=('clean',)
+    for artist, title, blob in files(args[0] + "/"):
         converter = SongBook(artist, title, blob)
         latex = converter.produce_song()
         TexWriter(artist, title, latex, directory="library/").write()
 
 
 @subcmd
-def cleanraw(parser, context, args):
-    for artist, title, blob in files("raw/"):
+def cleanraw(parser, context, args=('raw',)):
+    if not len(args):
+        args = ('raw',)
+    for artist, title, blob in files(args[0] + "/"):
         blob = clean(blob)
         if not "[" in blob:
             blob = "[Instrumental]\n" + blob
         FileWriter(artist, title, blob, directory='clean/', extension='txt').write()
+    for artist, title, blob in files("clean/"):
+        blob = clean(blob)
+        if not "[" in blob:
+            blob = "[Instrumental]\n" + blob
+        FileWriter(artist, title, blob, directory='clean/', extension='txt').write()
+
 
 @subcmd
 def sanitize(parser, context, args):
     result = []
     for line in open(args[0]):
         artist, title = lastfm(line.strip())
-        if artist and title and not find_file_for_keyword(artist + ' - '+ title):
-            result.append(artist+" - "+title)
+        if artist and title and find_file_for_keyword(artist + ' - ' + title):
+            print(line, "already exists")
+        elif artist and title and not find_file_for_keyword(artist + ' - ' + title):
+            result.append(artist + " - " + title)
         else:
+            print("Could not make sense of", line)
             result.append(line)
-    with open("sanitized.txt",'w') as f:
-        f.writelines(result)
+    with open("sanitized.txt", 'w',encoding='utf-8') as f:
+        f.write('\n'.join(result))
 
 
-
-def asdasdas(parser, context, args):
-    for line in open(args[0]):
-        source = postulate_url(*lastfm(line.strip()))
-        print(source)
-        artist, title, blob = ultimate_guitar(source)
-        FileWriter(artist, title, blob, directory='raw/', extension='txt').write()
 
 
 @subcmd
-def makepdf(parser, context, args):
-    latex = (line for line in fileinput.input(glob.glob("library/*.tex"), openhook=fileinput.hook_encoded("utf-8")))
-    latex = songbook_header() + wrap("document", "\n".join(latex))
+def makepdf(parser, context, args=('library',)):
+    if not len(args):
+        args=('library',)
+    latex = (line for line in fileinput.input(glob.glob(args[0] + '/*.tex'), openhook=fileinput.hook_encoded("utf-8")))
+    latex = header() + wrap("document", "\n".join(latex))
     PdfWriter("Sebastian", "Songbook", latex).write()
 
 
+@subcmd
+def reviewtopdf(parser, context, args):
+    print("Making tex")
+    maketex(parser,context,('reviewed',))
+    print("Making pdf")
+    makepdf(parser,context,args=('library',))
 if __name__ == "__main__":
     handler = ArgumentHandler()
     handler.run()

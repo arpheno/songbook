@@ -1,0 +1,14 @@
+\newenvironment{SBInstrumental}{
+  \sbSetsbBaselineSkipAmt
+  \bgroup
+  \SBChorusMarkright{\SBChorusTag}
+  \begin{list}{{\SBChorusTagFont Instrumental}}
+    {\setlength {\leftmargin}   {\LeftMarginSBChorus + \HangAmt}
+      \setlength{\itemindent}   {-\HangAmt}
+      \setlength{\listparindent}{-\HangAmt}
+      \setlength{\parsep}       {0pt}
+      \setlength{\baselineskip} {\sbBaselineSkipAmt}
+      }
+    \item}
+{\end{list} \egroup \SpaceAfterChorus }
+

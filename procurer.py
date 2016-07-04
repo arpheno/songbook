@@ -7,6 +7,7 @@ from requests import get
 try:
     from secret import API_KEY, API_SECRET
 except:
+    print("no api key")
     API_KEY = ""  # this is a sample key
     API_SECRET = ""
 

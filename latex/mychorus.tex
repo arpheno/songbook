@@ -1,0 +1,11 @@
+\renewenvironment{SBChorus}{
+  \sbSetsbBaselineSkipAmt
+  \bgroup
+  \begin{list}{{\SBChorusTagFont\SBChorusTag}}
+    {\setlength {\leftmargin}   { \HangAmt}
+      \setlength{\parsep}       {0pt}
+      \setlength{\baselineskip} {\sbBaselineSkipAmt}
+      }
+    \item}
+{\end{list} \egroup \SpaceAfterChorus }
+
