@@ -22,7 +22,7 @@ class FileWriter(object):
 
     def write(self):
         import codecs
-        print("Writing file", self.path.encode('utf-8'))
+        print(".",end="",flush=True)
         with codecs.open(self.path, "w", encoding="utf-8") as f:
             f.write(self.blob)
         return self.filename

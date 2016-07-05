@@ -7,6 +7,7 @@ from string import punctuation
 from converter import Converter
 from processing import groupby_spaces, join_chord_and_leave_spaces, flatten, grouplines
 from rules import clean
+from words import keysigns
 from words import most_common
 
 
@@ -97,16 +98,18 @@ def is_chordline(line):
     flatchords = [key + '#' for key in keys] + [key + 'b' for key in keys]
     chords=list(chain(keys, flatchords))
     mollchords = [a + 'm' for a in chords]
-    majchords = [key+"maj7" for key in chords]
+    majchords = [key+x for key in chords for x in ["maj7","min","Min"]]
     powerchords = [key+x for key in chain(mollchords,chords) for x in "576"]
-    suschords=[key+'sus'+x for key in chain(mollchords,chords) for x in "24"]
-    addchords=[key+'add'+x for key in chain(mollchords,chords) for x in ["9",'11','13']]
+    suschords=[key+'sus'+x for key in chain(mollchords,chords,powerchords) for x in "24"]
+    addchords=[key+'add'+x for key in chain(mollchords,chords) for x in ["7","9",'11','13']]
     whitespace = ["\w.*\s\s"]
     import re
     myregex = "|".join(r"^.*" + x + r"(\*)?\s.*$" for x in chain(keys, powerchords,mollchords, flatchords,suschords,majchords,addchords))
     chords = re.compile(myregex)
     return chords.match(line)
 def is_lyricsline(line):
+    if any(x in line for x in keysigns):
+        return True
     line = [word.lower().strip(punctuation) for word in line.split()]
     if any(word in  line for word in most_common):
         return True

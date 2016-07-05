@@ -1,5 +1,7 @@
-english = [word.strip() for word in open("words/english.txt").readlines()]
-german = [word.strip() for word in open("words/german.txt").readlines()]
+english = [word.strip() for word in open("wordlists/english.txt").readlines()]
+german = [word.strip() for word in open("wordlists/german.txt").readlines()]
+italian = [word.strip() for word in open("wordlists/italian.txt").readlines()]
+spanish = [word.strip() for word in open("wordlists/spanish.txt").readlines()]
 polish = ['nie', 'to', 'się', 'na', 'co', 'że', 'jest', 'do', 'tak', 'jak', 'mnie', 'ale', 'mi', 'za', 'ja', 'ci', 'tu',
           'go', 'tego', 'tym', 'ty', 'czy', 'tylko', 'po', 'jestem', 'cię', 'ma', 'może', 'już', 'mam', 'jesteś', 'pan',
           'coś', 'dla', 'wiem', 'dobrze', 'jeśli', 'od', 'teraz', 'proszę', 'tam', 'wszystko', 'masz', 'więc', 'nic',
@@ -51,4 +53,5 @@ slovenian = ['je', 'in', 'se', 'v', 'da', 'na', 'so', 'ne', 'pa', 'ki', 'bi', 'z
              'če', 'vse', 'bila', 'kakor', 'mi', 'pri', 'jo', 'kar', 'jih', 'sta', 'o', 'do', 'ti', 'kako', 'samo',
              'me']
 manual = ["run", "oh", "such", "yo", "sure", "i'm", "love", "can't", "yourself", "open", "they're", 'i\'ll',"it's",'never','easy',"sitting","simultaneous","release"]
+keysigns = set(["ę",'č','ž','š','ł','ó','ś','ą','ż','ć','ź','sz','cz','ä','ü','ö','ß'])
 most_common = set(manual + english + slovenian + polish +german)

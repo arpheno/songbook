@@ -6,10 +6,12 @@ import random
 import time
 
 import re
+from urllib.error import HTTPError
 
 from arghandler import ArgumentHandler, subcmd
 from google import search
 from subprocess import call
+
 
 from procurer import ultimate_guitar, lastfm, postulate_url
 from rules import rules, clean
@@ -21,7 +23,6 @@ def url(keyword):
     searchterm = "site:ultimate-guitar.com chords " + keyword
     results = search(searchterm, stop=10)
     for url in results:
-        time.sleep(random.random())
         if 'search' not in url:
             return url
     raise ArithmeticError
@@ -45,11 +46,18 @@ def filter_existing(lines):
 
 def addsongs(keywords):
     written = []
+    working = 1
     for line in keywords:
+        if not working:
+            written.append(line)
+            continue
         try:
             source = url(line)
             artist, title, blob = ultimate_guitar(source)
             FileWriter(artist, title, blob, directory='raw/', extension='txt').write()
+        except HTTPError:
+            working = 0
+            print("Google said fuck you")
         except Exception as e:
             print("Couldn't add " + line)
             print(e)
@@ -84,14 +92,11 @@ def add(parser, context, args):
 @subcmd
 def addfile(parser, context, args):
     lines = set(line.strip() for line in open(args[0]))
-    if not "force" in args:
-        keywords = filter_existing(lines)
-    else:
-        keywords = lines
+    keywords = lines
     added = addsongs(keywords)
     with open("written.txt", "w") as f:
-        f.writelines(added)
-
+        f.write("\n".join(added))
+    cleanraw(parser,context,())
 
 def files(directory):
     for file in glob.glob(directory + "*"):

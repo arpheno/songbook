@@ -62,7 +62,6 @@ deletions = {
     r'%': '',
     r'let ring': '',
     r'^\(.*\)$': '',
-    r'^[eBDGAE]$': '',
     r'^--.*--': '',
     r'^-.*-': '',
     r'^by .*':'',
@@ -70,7 +69,13 @@ deletions = {
     '\| h  Hammer-on': '',
     '\| p  Pull-off': '',
 }
-rules.update(deletions)
+
+def multidelete(text):
+    import re
+    rep = dict((re.escape(k), v) for k, v in deletions.items())
+    pattern = re.compile("|".join(rep.keys()),flags=re.I)
+    return pattern.sub('', text)
+
 
 
 def clean(text):
@@ -78,6 +83,7 @@ def clean(text):
     result = []
     for line in text.splitlines():
         for pattern, replacement in rules.items():
+            line = multidelete(line)
             line = re.sub(pattern, replacement, line, flags=re.I)
         if not all(x.isspace() for x in line):
             result.append(line)
